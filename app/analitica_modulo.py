@@ -24,8 +24,27 @@ class analitica():
 
     def update_data(self, msj):
         msj_vetor = msj.split(",")
-        new_data = {"fecha": msj_vetor[0], "sensor": msj_vetor[1], "valor": float(msj_vetor[2])}
+        now = datetime.now()
+        date_time = now.strftime('%d.%m.%Y %H:%M:%S')
+        new_data = {"fecha": date_time, "sensor": msj_vetor[0], "valor": float(msj_vetor[1])}
         self.df = self.df.append(new_data, ignore_index=True)
+        new_data = {"fecha": date_time, "sensor": msj_vetor[2], "valor": float(msj_vetor[3])}
+        self.df = self.df.append(new_data, ignore_index=True)
+        new_data = {"fecha": date_time, "sensor": msj_vetor[4], "valor": float(msj_vetor[5])}
+        self.df = self.df.append(new_data, ignore_index=True)
+        new_data = {"fecha": date_time, "sensor": msj_vetor[6], "valor": float(msj_vetor[7])}
+        self.df = self.df.append(new_data, ignore_index=True)
+        new_data = {"fecha": date_time, "sensor": msj_vetor[8], "valor": float(msj_vetor[9])}
+        self.df = self.df.append(new_data, ignore_index=True)
+        new_data = {"fecha": date_time, "sensor": msj_vetor[10], "valor": float(msj_vetor[11])}
+        self.df = self.df.append(new_data, ignore_index=True)
+        self.publicar("temperatura",msj_vetor[1])
+        self.publicar("humedad",msj_vetor[3])
+        self.publicar("presion",msj_vetor[5])
+        self.publicar("X",msj_vetor[7])
+        self.publicar("Y",msj_vetor[9])
+        self.publicar("Z",msj_vetor[11])
+
         self.analitica_descriptiva()
         self.analitica_predictiva()
         self.guardar()
@@ -35,7 +54,12 @@ class analitica():
 
     def analitica_descriptiva(self):
         self.operaciones("temperatura")
-        self.operaciones("densidad")
+        self.operaciones("humedad")
+        self.operaciones("presion")
+        self.operaciones("X")
+        self.operaciones("Y")
+        self.operaciones("Z")
+
 
     def operaciones(self, sensor):
         df_filtrado = self.df[self.df["sensor"] == sensor]
@@ -49,7 +73,11 @@ class analitica():
 
     def analitica_predictiva(self):
         self.regresion("temperatura")
-        self.regresion("densidad")
+        self.operaciones("humedad")
+        self.operaciones("presion")
+        self.operaciones("X")
+        self.operaciones("Y")
+        self.operaciones("Z")
 
     def regresion(self, sensor):
         df_filtrado = self.df[self.df["sensor"] == sensor]
@@ -73,7 +101,7 @@ class analitica():
         for tiempo, prediccion in zip(nuevos_tiempos, Y_pred):
             time_format = datetime.utcfromtimestamp(tiempo)
             date_time = time_format.strftime('%d.%m.%Y %H:%M:%S')
-            self.publicar("prediccion-{}".format(sensor), "{},{}".format(date_time,prediccion[0]))
+            self.publicar("prediccion-{}".format(sensor), "{topic:{},payload:{},timestamp:{}}".format(sensor,prediccion[0],date_time))
     @staticmethod
     def publicar(cola, mensaje):
         connexion = pika.BlockingConnection(pika.ConnectionParameters(host='rabbit'))
